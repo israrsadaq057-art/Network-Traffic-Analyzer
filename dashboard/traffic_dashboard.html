@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Traffic Analyzer | Israr Sadaq</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 25px;
+            color: white;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-number { font-size: 32px; font-weight: bold; color: #1e3c72; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+        
+        .talker-item, .app-item, .device-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 8px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        
+        .badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+        }
+        .badge-critical { background: #fee2e2; color: #dc2626; }
+        .badge-warning { background: #fff3e0; color: #f97316; }
+        .badge-good { background: #d4edda; color: #22c55e; }
+        
+        .alert-item {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .alert-critical { background: #fee2e2; border-left: 3px solid #dc2626; }
+        .alert-warning { background: #fff3e0; border-left: 3px solid #f97316; }
+        
+        .footer {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📊 Network Traffic Analyzer & Bandwidth Manager</h1>
+        <p>Real-time Network Monitoring | Top Talkers | Application Breakdown | QoS Recommendations</p>
+        <p>Network Engineer: Israr Sadaq | CCNA | CCNP | Berlin, Germany</p>
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-number" id="totalBandwidth">0</div><div>Total Bandwidth (Mbps)</div></div>
+        <div class="stat-card"><div class="stat-number" id="peakHour">0%</div><div>Peak Utilization</div></div>
+        <div class="stat-card"><div class="stat-number" id="activeDevices">0</div><div>Active Devices</div></div>
+        <div class="stat-card"><div class="stat-number" id="alertsCount">0</div><div>Active Alerts</div></div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-title">🔝 Top Talkers (Bandwidth Consumers)</div>
+            <div id="topTalkers"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📱 Application Breakdown</div>
+            <div id="applications"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🖧 Device Summary</div>
+            <div id="devices"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">⚠️ Active Alerts</div>
+            <div id="alerts"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>📧 israrsadaq057@gmail.com | 📱 +49 152525267799</p>
+        <p>© 2026 Israr Sadaq | Network Traffic Analyzer</p>
+    </div>
+</div>
+
+<script>
+    // Simulated real-time data
+    let data = {
+        totalBandwidth: 485,
+        peakUtilization: 72,
+        activeDevices: 8,
+        topTalkers: [
+            { name: "192.168.1.90 (Student Lab)", bandwidth: 156 },
+            { name: "192.168.1.50 (Marketing)", bandwidth: 98 },
+            { name: "192.168.1.30 (Network Admin)", bandwidth: 67 },
+            { name: "192.168.1.80 (Development)", bandwidth: 54 },
+            { name: "192.168.1.100 (Guest WiFi)", bandwidth: 43 }
+        ],
+        applications: [
+            { name: "Streaming", bandwidth: 189, color: "#dc2626" },
+            { name: "HTTPS", bandwidth: 112, color: "#3b82f6" },
+            { name: "File Transfer", bandwidth: 67, color: "#8b5cf6" },
+            { name: "Video", bandwidth: 54, color: "#ef4444" },
+            { name: "HTTP", bandwidth: 32, color: "#22c55e" },
+            { name: "VoIP", bandwidth: 18, color: "#eab308" }
+        ],
+        devices: [
+            { name: "Core-SW-01", type: "core", bandwidth: 485, util: 48 },
+            { name: "Dist-SW-F1", type: "distribution", bandwidth: 234, util: 23 },
+            { name: "Access-F1-01", type: "access", bandwidth: 89, util: 8 },
+            { name: "Firewall-01", type: "firewall", bandwidth: 485, util: 48 }
+        ],
+        alerts: [
+            { severity: "warning", device: "Access-F2-01", message: "Bandwidth utilization at 78%", time: "5 min ago" },
+            { severity: "critical", device: "Streaming", message: "Using 189 Mbps - Throttle recommended", time: "2 min ago" }
+        ]
+    };
+    
+    function updateDashboard() {
+        // Simulate data changes
+        data.totalBandwidth = Math.max(200, Math.min(800, data.totalBandwidth + (Math.random() - 0.5) * 20));
+        data.peakUtilization = Math.round((data.totalBandwidth / 1000) * 100);
+        
+        document.getElementById('totalBandwidth').textContent = Math.round(data.totalBandwidth);
+        document.getElementById('peakHour').textContent = data.peakUtilization;
+        document.getElementById('activeDevices').textContent = data.devices.length;
+        document.getElementById('alertsCount').textContent = data.alerts.length;
+        
+        // Top Talkers
+        document.getElementById('topTalkers').innerHTML = data.topTalkers.map(t => {
+            let percent = (t.bandwidth / data.totalBandwidth) * 100;
+            return `
+                <div class="talker-item">
+                    <span><strong>${t.name}</strong></span>
+                    <span>${t.bandwidth} Mbps (${percent.toFixed(1)}%)</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%; background: #3b82f6;"></div></div>
+            `;
+        }).join('');
+        
+        // Applications
+        let totalAppBandwidth = data.applications.reduce((sum, a) => sum + a.bandwidth, 0);
+        document.getElementById('applications').innerHTML = data.applications.map(a => {
+            let percent = (a.bandwidth / totalAppBandwidth) * 100;
+            return `
+                <div class="app-item">
+                    <span>${a.name}</span>
+                    <span>${a.bandwidth} Mbps (${percent.toFixed(1)}%)</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: ${percent}%; background: ${a.color};"></div></div>
+            `;
+        }).join('');
+        
+        // Devices
+        document.getElementById('devices').innerHTML = data.devices.map(d => {
+            let barColor = d.util > 70 ? '#ef4444' : (d.util > 50 ? '#f97316' : '#22c55e');
+            return `
+                <div class="device-item">
+                    <span><strong>${d.name}</strong><br><small>${d.type}</small></span>
+                    <span>${d.bandwidth} Mbps (${d.util}%)</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: ${d.util}%; background: ${barColor};"></div></div>
+            `;
+        }).join('');
+        
+        // Alerts
+        document.getElementById('alerts').innerHTML = data.alerts.map(a => `
+            <div class="alert-item alert-${a.severity}">
+                <div><strong>${a.device}</strong> - ${a.message}</div>
+                <div style="font-size: 11px;">${a.time}</div>
+            </div>
+        `).join('');
+        
+        if (data.alerts.length === 0) {
+            document.getElementById('alerts').innerHTML = '<div style="padding: 20px; text-align: center; color: #22c55e;">✅ No active alerts</div>';
+        }
+    }
+    
+    updateDashboard();
+    setInterval(updateDashboard, 5000);
+</script>
+</body>
+</html>
